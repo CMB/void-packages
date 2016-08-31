@@ -1,0 +1,55 @@
+--- unix/tclXunixSock.c	2016-03-17 04:20:31.163345170 -0700
++++ unix/tclXunixSock.c	2016-03-17 04:27:34.334985964 -0700
+@@ -20,6 +20,7 @@
+  */
+ 
+ #include "tclExtdInt.h"
++#include <tirpc/rpc/rpc.h>
+ 
+ #define SERVER_BUF      1
+ #define SERVER_NOBUF    2
+@@ -196,16 +197,6 @@
+     }
+ 
+     /*
+-     * Allocate a reserved port if requested.
+-     */
+-    if (getReserved) {
+-        int port;
+-        if (rresvport (&port) < 0)
+-            goto unixError;
+-        local.sin_port = port;
+-    }
+-
+-    /*
+      * Open a socket and bind an address and port to it.
+      */
+     socketFD = socket (local.sin_family, SOCK_STREAM, 0);
+@@ -217,8 +208,15 @@
+                     (void*) &value, sizeof (value)) < 0) {
+         goto unixError;
+     }
+-    if (bind (socketFD, (struct sockaddr *) &local, sizeof (local)) < 0) {
+-        goto unixError;
++
++    if (getReserved) {
++        if (bindresvport (socketFD, &local) < 0) {
++            goto unixError;
++        }
++    } else {
++        if (bind (socketFD, (struct sockaddr *) &local, sizeof (local)) < 0) {
++            goto unixError;
++        }
+     }
+ 
+     if (listen (socketFD, backlog) < 0)
+--- configure.in	2016-03-17 04:30:31.363186432 -0700
++++ configure.in	2016-03-17 04:30:10.070978189 -0700
+@@ -102,6 +102,7 @@
+     TEA_ADD_SOURCES([tclXunixCmds.c tclXunixDup.c tclXunixId.c tclXunixOS.c
+ 			tclXunixSock.c])
+     TEA_ADD_LIBS([${MATH_LIBS}])
++    TEA_ADD_LIBS([-ltirpc])
+     TEA_ADD_INCLUDES([-I\"${srcdir}/unix\"])
+ fi
+ AC_SUBST(CLEANFILES)

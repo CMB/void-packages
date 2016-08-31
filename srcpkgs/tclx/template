@@ -1,0 +1,42 @@
+# Template file for 'tclx'
+pkgname=tclx
+version=8.4.1
+revision=2
+wrksrc="${pkgname}8.4"
+build_style=gnu-configure
+configure_args="--with-tcl=/usr/lib"
+hostmakedepends="autoconf tcl-devel"
+makedepends="tcl-devel"
+depends="tcl"
+short_desc="A set of extensions to TCL"
+maintainer="Christopher Brannon <chris@the-brannons.com>"
+license="BSD"
+homepage="http://tclx.sourceforge.net"
+distfiles="${SOURCEFORGE_SITE}/tclx/${pkgname}${version}.tar.bz2"
+checksum=a9b41f606ec6c1268b9c78512e6e1cb533bd9ae3e786e650d111fc16ffe758ec
+
+case "${XBPS_TARGET_MACHINE}" in
+*-musl)
+	makedepends+=" libtirpc-devel"
+	CFLAGS+=" -I${XBPS_CROSS_BASE}/usr/include/tirpc"
+	;;
+esac
+
+post_extract() {
+	case "${XBPS_TARGET_MACHINE}" in
+	*-musl)
+		patch -Np0 -i ${FILESDIR}/musl.patch
+		;;
+	esac
+}
+
+pre_configure() {
+	autoreconf -fi
+}
+
+post_install() {
+	for manpage in doc/*[3n]; do
+		vman $manpage
+	done
+	vlicense license.terms
+}

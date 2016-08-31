@@ -1,0 +1,33 @@
+The original code adds a definition if times(2) returns a status and
+prints a message otherwise.  It is cross-compilation unfriendly.
+Since times(2) returns elapsed time on Linux, we can scrap it, because
+all it does is print a message.
+--- configure.in	2016-03-16 17:09:35.705865838 -0700
++++ configure.in	2016-03-16 17:10:32.997303002 -0700
+@@ -186,26 +186,6 @@
+     fi
+ 
+     #-------------------------------------------------------------------------
+-    # Test to see if "times" returns a status or the amount of elapsed real
+-    # time.
+-    #-------------------------------------------------------------------------
+-    
+-    AC_MSG_CHECKING(checking to see what 'times' returns)
+-    AC_TRY_RUN([
+-#include <sys/types.h>
+-#include <sys/times.h>
+-main() {
+-    struct tms cpu;
+-    times(&cpu);
+-    sleep(2);
+-    exit ((times(&cpu) > 0) ? 0 : 1);
+-}
+-], [AC_MSG_RESULT(elapsed real time)],
+-       [AC_MSG_RESULT(a status)
+-    	AC_DEFINE(TIMES_RETS_STATUS)],
+-       [AC_MSG_ERROR(cross-compiling not supported)])
+-    
+-    #-------------------------------------------------------------------------
+     # Check for missing typedefs.
+     #-------------------------------------------------------------------------
+     
