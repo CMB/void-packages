@@ -1,0 +1,23 @@
+# Template file for 'base-voidstrap'
+pkgname=base-cmb
+version=0.10
+revision=4
+short_desc="Void Linux base system meta package (cmb base)"
+maintainer="Chris Brannon <chris@the-brannons.com>"
+license="Public Domain"
+homepage="https://www.voidlinux.org/"
+
+depends="
+ base-minimal bash dosfstools e2fsprogs eudev file iproute2 iputils
+ kbd kmod less lr man-pages mdocml>=1.13.3 mtr ncurses nftables opendoas
+ openssh snooze metalog"
+conf_files='/etc/doas.conf'
+
+case "$XBPS_TARGET_MACHINE" in
+	*-musl) depends+=" musl";;
+	*) depends+=" glibc-locales";;
+esac
+
+do_install() {
+	vinstall "${FILESDIR}/doas.conf" 600 etc
+}
