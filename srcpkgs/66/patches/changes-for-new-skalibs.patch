@@ -1,0 +1,157 @@
+diff --git a/configure b/configure
+index 77b5e1d..b72cf1c 100755
+--- configure
++++ configure
+@@ -159,7 +159,7 @@ tryldflag () {
+ # Actual script
+ 
+ CC_AUTO=
+-CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -iquote src/include-local -Isrc/include"
++CPPFLAGS_AUTO="-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -iquote src/include-local -Isrc/include"
+ CPPFLAGS_POST="$CPPFLAGS"
+ CPPFLAGS=
+ CFLAGS_AUTO="-pipe -Wall"
+diff --git a/src/66/66-boot.c b/src/66/66-boot.c
+index 03f9779..07fa823 100644
+--- src/66/66-boot.c
++++ src/66/66-boot.c
+@@ -30,6 +30,7 @@
+ 
+ #include <skalibs/buffer.h>
+ #include <skalibs/djbunix.h>
++#include <skalibs/exec.h>
+ #include <skalibs/stralloc.h>
+ #include <skalibs/types.h>
+ 
+@@ -327,7 +328,7 @@ static inline void run_stage2 (char const *const *envp, size_t envlen, char cons
+ 	memcpy(t,sacmdline.s,tlen) ;
+ 	t[tlen] = 0 ;
+ 	stralloc_free(&sacmdline) ;
+-	xpathexec_r(newargv, envp, envlen, t, tlen) ;
++	xmexec_fm(newargv, envp, envlen, t, tlen) ;
+ }
+ 
+ static inline void run_cmdline(char const *const *newargv, char const *const *envp, char const *msg,char const *arg)
+@@ -496,6 +497,6 @@ int main(int argc, char const *const *argv,char const *const *envp)
+ 		if (reboot(RB_DISABLE_CAD) == -1) log_warnusys("trap ctrl-alt-del") ;
+ 		if (fd_copy(2, 1) == -1) sulogin("copy stderr to stdout","") ;
+ 		fd_close(fdin) ;
+-		xpathexec_r(newargv, newenvp, 1, envmodifs.s, envmodifs.len) ;
++		xmexec_fm(newargv, newenvp, 1, envmodifs.s, envmodifs.len) ;
+ 	}
+ }
+diff --git a/src/66/66-scandir.c b/src/66/66-scandir.c
+index c8f5c58..0845d06 100644
+--- src/66/66-scandir.c
++++ src/66/66-scandir.c
+@@ -33,6 +33,7 @@
+ #include <skalibs/djbunix.h>
+ #include <skalibs/types.h>
+ #include <skalibs/env.h>
++#include <skalibs/exec.h>
+ #include <skalibs/bytestr.h>//byte_count
+ 
+ #include <s6/config.h>
+@@ -127,7 +128,7 @@ void scandir_up(char const *scandir, unsigned int timeout, char const *const *en
+ 	/** in case of boot process, the redirection of the uncaught-log
+ 	 * will block the fd, so , do not sends anything
+ 	 * VERBO2 strerr_warni3x("Starts scandir ",scandir," ...") ; */
+-	xpathexec_run (newup[0], newup, envp) ;
++	xexec_ae (newup[0], newup, envp) ;
+ }
+ 
+ static void inline auto_chown(char const *str)
+diff --git a/src/66/66-tree.c b/src/66/66-tree.c
+index 0594e2a..c814629 100644
+--- src/66/66-tree.c
++++ src/66/66-tree.c
+@@ -26,6 +26,7 @@
+ #include <oblibs/sastr.h>
+ 
+ #include <skalibs/stralloc.h>
++#include <skalibs/posixplz.h>
+ #include <skalibs/djbunix.h>
+ #include <skalibs/buffer.h>
+ #include <skalibs/bytestr.h>//byte_count
+diff --git a/src/extra-tools/execl-envfile.c b/src/extra-tools/execl-envfile.c
+index a028b81..3b1241b 100644
+--- src/extra-tools/execl-envfile.c
++++ src/extra-tools/execl-envfile.c
+@@ -29,6 +29,7 @@
+ #include <skalibs/env.h>
+ #include <skalibs/djbunix.h>
+ #include <skalibs/env.h>
++#include <skalibs/exec.h>
+ #include <skalibs/sgetopt.h>
+ 
+ #include <execline/execline.h>
+@@ -148,7 +149,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
+ 	if (!r && insist) log_dieusys(LOG_EXIT_SYS,"get file from: ",path) ;
+ 	else if ((!r && !insist) || !toparse.len)
+ 	{
+-		xpathexec_run(argv[0],argv,envp) ;
++		xexec_ae(argv[0],argv,envp) ;
+ 	}
+ 	if (file)
+ 	{
+@@ -158,7 +159,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
+ 			if (insist) log_dieu(LOG_EXIT_SYS,"find: ",path,file) ;
+ 			else
+ 			{
+-				xpathexec_run(argv[0],argv,envp) ;
++				xexec_ae(argv[0],argv,envp) ;
+ 			}
+ 		}
+ 		if (!file_readputsa(&src,path,file)) log_dieusys(LOG_EXIT_SYS,"read file: ",path,file) ;
+@@ -234,5 +235,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
+ 	if (!env_make (v, r ,dst.s, dst.len)) log_dieusys(LOG_EXIT_SYS,"make environment") ;
+ 	v[r] = 0 ;
+ 	
+-	pathexec_r (v, newenv, env_len(newenv),info.modifs.s,info.modifs.len) ;
++	mexec_fm (v, newenv, env_len(newenv),info.modifs.s,info.modifs.len) ;
+ }
+diff --git a/src/lib66/ss_resolve.c b/src/lib66/ss_resolve.c
+index 3ca42aa..a3aee52 100644
+--- src/lib66/ss_resolve.c
++++ src/lib66/ss_resolve.c
+@@ -27,6 +27,7 @@
+ #include <oblibs/sastr.h>
+ 
+ #include <skalibs/stralloc.h>
++#include <skalibs/posixplz.h>
+ #include <skalibs/djbunix.h>
+ #include <skalibs/direntry.h>
+ #include <skalibs/unix-transactional.h>
+diff --git a/src/lib66/ssexec_env.c b/src/lib66/ssexec_env.c
+index c13b986..45d6775 100644
+--- src/lib66/ssexec_env.c
++++ src/lib66/ssexec_env.c
+@@ -28,6 +28,7 @@
+ #include <skalibs/buffer.h>
+ #include <skalibs/diuint32.h>
+ #include <skalibs/djbunix.h>
++#include <skalibs/exec.h>
+ #include <skalibs/unix-transactional.h>//atomic_symlink
+ 
+ #include <66/ssexec.h>
+@@ -95,7 +96,7 @@ static void run_editor(char const *src, char const *const *envp)
+ 		else log_dieusys(LOG_EXIT_SYS,"get EDITOR") ;
+ 	}
+ 	char const *const newarg[3] = { editor, src, 0 } ;
+-	xpathexec_run (newarg[0],newarg,envp) ;
++	xexec_ae (newarg[0],newarg,envp) ;
+ }
+ 
+ static void do_import(char const *svname, char const *svconf, char const *version)
+diff --git a/src/lib66/svc_init.c b/src/lib66/svc_init.c
+index 747f4f7..160b8c7 100644
+--- src/lib66/svc_init.c
++++ src/lib66/svc_init.c
+@@ -27,6 +27,7 @@
+ #include <skalibs/types.h>
+ #include <skalibs/tai.h>
+ #include <skalibs/djbunix.h>
++#include <skalibs/posixplz.h>
+ 
+ #include <s6/s6-supervise.h>
+ #include <s6/ftrigr.h>
