@@ -1,6 +1,6 @@
 # Template file for 'execline'
 pkgname=execline
-version=2.6.1.1
+version=2.7.0.0
 revision=1
 build_style=configure
 configure_args="--libdir=/usr/lib --bindir=/usr/bin
@@ -13,7 +13,7 @@ license="ISC"
 homepage="https://skarnet.org/software/execline/"
 changelog="https://skarnet.org/software/execline/upgrade.html"
 distfiles="https://skarnet.org/software/${pkgname}/${pkgname}-${version}.tar.gz"
-checksum=394308f0349f962086a9695ca2bb5ef32cd38e5be6b7cec0b3d0cf35a2b2ba56
+checksum=0d5f7ba9af702d5c648f93e1de7d4816a05a7dba10ea31117fba02d3a327874e
 
 CFLAGS="-fPIC"
 
