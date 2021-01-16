@@ -1,6 +1,6 @@
 # Template file for 's6-dns'
 pkgname=s6-dns
-version=2.3.3.0
+version=2.3.4.0
 revision=1
 build_style=configure
 configure_args="--prefix=/usr --libdir=/usr/lib
@@ -12,7 +12,7 @@ maintainer="lemmi <lemmi@nerd2nerd.org>"
 license="ISC"
 homepage="https://skarnet.org/software/s6-dns"
 distfiles="${homepage}/${pkgname}-${version}.tar.gz"
-checksum=2ac75918ff5eb4d6dabe33f7e55fa70cf3e6a9062ff87de5a35029ea22238716
+checksum=d615e7da4c9bd41f5cae492c6b8870cc0b3a7e3f02beb14704ce0b1fd822490f
 
 post_install() {
 	vlicense COPYING
