@@ -1,0 +1,12 @@
+# Template file for 'sedutil'
+pkgname=sedutil
+version=1.15.1
+revision=1
+build_style=gnu-configure
+hostmakedepends="autoconf automake libtool"
+short_desc="DTA sedutil Self encrypting drive software"
+maintainer="Christopher Brannon <chris@the-brannons.com>"
+license="GPL-3.0-or-later"
+homepage="https://github.com/Drive-Trust-Alliance/sedutil"
+distfiles="https://github.com/Drive-Trust-Alliance/sedutil/archive/${version}.tar.gz"
+checksum=9259466b4f73af276153c5245834a56f48f8721ea7263611b5d5e8326bc43d9e
